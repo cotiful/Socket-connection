@@ -1,25 +1,48 @@
 package site.metacoding.chat;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class MyClientSocket {
 
     Socket socket;
     BufferedWriter writer;
-    PrintWriter pw;
+    Scanner sc;
+    BufferedReader reader;
 
     public MyClientSocket() {
         try {
-            socket = new Socket("localhost", 1077); // localhost: 아이피 주소, 1077: 포트 번호.
-            // writer = new BufferedWriter(
-            // new OutputStreamWriter(socket.getOutputStream()));
-            // writer.write("안녕\n"); // 메세지 끝이라는걸 알려줘야함 "\n"으로,, 버퍼에 담은 거다.
-            // writer.flush();
-            pw = new PrintWriter(socket.getOutputStream(), true); // true라고 걸어주면 자동 flush함, 오우 버퍼드롸이터구나!
-            pw.println("유승현");
+            socket = new Socket("localhost", 1077);
+            writer = new BufferedWriter(
+                    new OutputStreamWriter(socket.getOutputStream()));
+
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // 2. 이 부분 추가 (클라이언트 소켓쪽)
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        String inputData = reader.readLine();
+                        System.out.println("받은 메시지 : " + inputData);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+            // 스캐너 달고 (반복x)
+            sc = new Scanner(System.in);
+            // 키보드로부터 입력 받는 부분 (반복)
+            while (true) {
+                String inputData = sc.nextLine();
+                writer.write(inputData + "\n");
+                writer.flush();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
